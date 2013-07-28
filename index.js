@@ -25,7 +25,7 @@ var game = createEngine({
     return (Math.sqrt(x*x + y*y + z*z) > 20 || y*y > 10) ? 0 : (Math.random() * 2) + 1;
   },
   texturePath: './textures/',
-  materials: ['dirt', 'grass'].concat(links),
+  materials: ['grass', 'grass_dirt'].concat(links),
   controls: { discreteFire: true }
 });
 game.appendTo(document.body);
@@ -39,14 +39,14 @@ var y = 5;
 links.map(function(slide) {
   game.setBlock([0, y, z], slide);
   z += 2;
-  if (z > 5) {
+  if (z > 2) {
     z = -5,
     y += 2
   }
 });
 
 game.on('setBlock', function(pos, val, old) {
-  if (old === 1 || val === 1) return
+  if (old === 2 ||old === 1 || val === 1) return
   var url = urls[links[old - 3]]
   window.open(url, "_blank")
 })

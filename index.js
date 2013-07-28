@@ -25,7 +25,7 @@ var game = createEngine({
     return (Math.sqrt(x*x + y*y + z*z) > 20 || y*y > 10) ? 0 : (Math.random() * 2) + 1;
   },
   texturePath: './textures/',
-  materials: ['grass', 'grass_dirt'].concat(links),
+  materials: ['grass', 'dirt'].concat(links),
   controls: { discreteFire: true }
 });
 game.appendTo(document.body);
@@ -104,8 +104,8 @@ game.interact.on('attain', function() { game.paused = false });
 
 // Drone Generator
 // create a drone
-var drone = createDrone(game);
-game.addItem(drone.item());
+// var drone = createDrone(game);
+// game.addItem(drone.item());
 
 // show the video monitor
 // drone.viewCamera();
@@ -135,9 +135,8 @@ window.addEventListener('keyup', function(e) {
 });
 
 // log navdata
-var battery = document.querySelector('#battery');
-drone.on('navdata', function(data) {
-  battery.innerHTML = data.demo.batteryPercentage + '%';
-  //console.log(data);
-});
+// var battery = document.querySelector('#battery');
+// drone.on('navdata', function(data) {
+//   battery.innerHTML = data.demo.batteryPercentage + '%';
+// });
 

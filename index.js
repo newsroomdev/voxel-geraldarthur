@@ -1,9 +1,22 @@
 var createEngine = require('voxel-engine');
-var walk = require('voxel-walk');
-var sky = require('voxel-sky');
-var highlight = require('voxel-highlight');
-var fly = require('voxel-fly');
 var createDrone = require('voxel-drone');
+var walk = require('voxel-walk');
+var highlight = require('voxel-highlight');
+var sky = require('voxel-sky');
+
+var urls = {
+  "brothel": "http://a.tiles.mapbox.com/v3/geraldrich.HStreets/page.html#10.00/29.7488/-95.2185",
+  "class-act": "https://github.com/geraldarthur",
+  "houston": "http://data.codeforhouston.com/",
+  "fatalities": "http://app1.kuhf.org/vehicle-fatalities-texas.html",
+  "homepage": "http://geraldarthur.com/",
+  "nprapps": "http://blog.apps.npr.org/2013/06/06/how-to-setup-a-developers-environment.html",
+  "texas": "http://www.dailytexanonline.com/search/site/gerald%20rich",
+  "tt": "http://www.texastribune.org/search/?q=gerald+rich&x=-1081&y=-128",
+  "tumblr": "http://storyboard.tumblr.com/post/27329227111/dear-class-of-2012-now-what-although-theres"
+}
+
+var links = Object.keys(urls)
 
 // World Generator
 // create world, attach to document, engage!
@@ -11,29 +24,32 @@ var game = createEngine({
   generate: function(x, y, z) {
     return (Math.sqrt(x*x + y*y + z*z) > 20 || y*y > 10) ? 0 : (Math.random() * 2) + 1;
   },
-  chunkDistance: 2,
   texturePath: './textures/',
-  materials: [
-    'obsidian',
-    ['grass', 'dirt', 'grass_dirt'],
-    'grass',
-    'plank'
-  ],
-  worldOrigin: [0, 0, 0],
-  lightsDisabled: false,
+  materials: ['dirt', 'grass'].concat(links),
+  controls: { discreteFire: true }
 });
-var container = document.body;
-game.appendTo(container);
+game.appendTo(document.body);
 
 var createSky = require('voxel-sky')(game);
 var sky = createSky();
 game.on('tick', sky);
 
-// add some trees
-var createTree = require('voxel-forest');
-for (var i = 0; i < 20; i++) {
-  createTree(game, { bark: 4, leaves: 3 });
-}
+var z = -5;
+var y = 5;
+links.map(function(slide) {
+  game.setBlock([0, y, z], slide);
+  z += 2;
+  if (z > 5) {
+    z = -5,
+    y += 2
+  }
+});
+
+game.on('setBlock', function(pos, val, old) {
+  if (old === 1 || val === 1) return
+  var url = urls[links[old - 3]]
+  window.open(url, "_blank")
+})
 
 // Player Generator
 // add gerald
@@ -44,12 +60,12 @@ gerald.yaw.position.set(2, 14, 4);
 
 // Interaction & Events
 // highlight blocks, hold <Ctrl> for block placement
-var blockPosPlace, blockPosErase
-var hl = game.highlighter = highlight(game, { color: 0xff0000 })
-hl.on('highlight', function (voxelPos) { blockPosErase = voxelPos })
-hl.on('remove', function (voxelPos) { blockPosErase = null })
-hl.on('highlight-adjacent', function (voxelPos) { blockPosPlace = voxelPos })
-hl.on('remove-adjacent', function (voxelPos) { blockPosPlace = null })
+var blockPosPlace, blockPosErase;
+var hl = game.highlighter = highlight(game, { color: 0xff0000 });
+hl.on('highlight', function (voxelPos) { blockPosErase = voxelPos });
+hl.on('remove', function (voxelPos) { blockPosErase = null });
+hl.on('highlight-adjacent', function (voxelPos) { blockPosPlace = voxelPos });
+hl.on('remove-adjacent', function (voxelPos) { blockPosPlace = null });
 
 // create blocks
 var currentMaterial = 1;
@@ -65,10 +81,10 @@ game.on('fire', function (target, state) {
   }
 })
 
-// fly
-// var makeFly = fly(game);
-// makeFly(gerald);
-// makeFly(game.controls.target());
+// // fly
+// // var makeFly = fly(game);
+// // makeFly(gerald);
+// // makeFly(game.controls.target());
 
 // walk
 game.on('tick', function() {
@@ -79,28 +95,17 @@ game.on('tick', function() {
   else walk.startWalking();
 })
 
-// ability to explode voxels
-var explode = require('voxel-debris')(game);
-game.on('mousedown', function (pos) {
-  if (erase) explode(pos);
-  else game.createBlock(pos, 1);
-});
-var erase = true;
-function ctrlToggle (ev) { erase = !ev.ctrlKey }
-window.addEventListener('keydown', ctrlToggle);
-window.addEventListener('keyup', ctrlToggle);
-
 window.addEventListener('keydown', function (ev) {
-  if (ev.keyCode === 'R'.charCodeAt(0)) gerald.toggle()
+  if (ev.keyCode === 'R'.charCodeAt(0)) gerald.toggle();
 })
+
+game.interact.on('release', function() { game.paused = true });
+game.interact.on('attain', function() { game.paused = false });
 
 // Drone Generator
 // create a drone
-// create a drone
-var drone = window.drone = createDrone(game);
-var item = drone.item();
-item.mesh.position.set(0, -1200, -300);
-game.addItem(item);
+var drone = createDrone(game);
+game.addItem(drone.item());
 
 // show the video monitor
 // drone.viewCamera();
